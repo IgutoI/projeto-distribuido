@@ -1,0 +1,93 @@
+
+syntax = "proto3";
+
+package datacenter;
+
+option java_multiple_files = true;
+option java_package = "br.edu.datacenter.proto";
+option java_outer_classname = "DataCenterProtocol";
+
+// Dados enviados pelos sensores ao Gateway.
+message SensorData {
+  string source_id = 1;
+  string sensor_type = 2;
+  double value = 3;
+  string unit = 4;
+  int64 timestamp = 5;
+  bool is_alert = 6;
+  string event_type = 7;
+}
+
+// Estado atual de uma fonte de dados.
+message SourceState {
+  string source_id = 1;
+  string source_type = 2;
+  string status = 3;
+  double value = 4;
+  string unit = 5;
+}
+
+// Comando enviado pelo cliente.
+message ClientCommand {
+  string source_id = 1;
+  string command = 2;
+  double value = 3;
+}
+
+// Resposta genérica do Gateway.
+message GatewayResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Consulta analítica solicitada pelo cliente.
+message AnalyticsQuery {
+  string query_type = 1;
+}
+
+// Resultado de uma consulta analítica.
+message AnalyticsResult {
+  string description = 1;
+  repeated string rows = 2;
+}
+
+// Serviço gRPC usado pelo Gateway para controlar fontes.
+service SourceControl {
+  rpc GetState (Empty) returns (SourceState);
+  rpc SetValue (SetValueRequest) returns (GatewayResponse);
+}
+
+message Empty {}
+
+message SetValueRequest {
+  double value = 1;
+}
+
+
+message ClientRequest {
+  oneof payload {
+    AnalyticsQuery analytics_query = 1;
+    ClientCommand client_command = 2;
+  }
+}
+
+message ClientReply {
+  oneof payload {
+    AnalyticsResult analytics_result = 1;
+    GatewayResponse gateway_response = 2;
+  }
+}
+
+
+message DiscoveryRequest {
+  string requester_id = 1;
+}
+
+message SourceAnnouncement {
+  string source_id = 1;
+  string source_type = 2;
+  string source_ip = 3;
+  int32 grpc_port = 4;
+  string initial_status = 5;
+}
+
